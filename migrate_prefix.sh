@@ -86,7 +86,7 @@ echo "Begin ${STEP}"
 tmpfile_prefix=tmp_${RANDOM}_
 find . -type l > ${tmpfile_prefix}symlinks
 find . -type l -exec readlink {} \; > ${tmpfile_prefix}original_link
-paste ${tmpfile_prefix}original_link ${tmpfile_prefix}symlinks | grep "${EPREFIX_OLD}" > ${tmpfile_prefix}fix_symlink.sh
+paste ${tmpfile_prefix}original_link ${tmpfile_prefix}symlinks | sed -n -e "/${EPREFIX_OLD//\//\\\/}/p" > ${tmpfile_prefix}fix_symlink.sh
 sed -e "s^${EPREFIX_OLD}^${EPREFIX_NEW}^g" -e "s/^/ln -sf${VERBOSE} /" -i ${tmpfile_prefix}fix_symlink.sh
 . ${tmpfile_prefix}fix_symlink.sh || die "Error ${STEP}" # run relink script
 rm ${tmpfile_prefix}{original_link,symlinks,fix_symlink.sh}
