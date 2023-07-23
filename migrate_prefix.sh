@@ -72,8 +72,9 @@ length_diff=$(( ${#EPREFIX_OLD} - ${#EPREFIX_NEW} ))
 [[ ${length_diff} -ge 0 ]] || die "\${EPREFIX_OLD} can't be shorter than \${EPREfIX_NEW}!" 78
 
 # Insert slashes at the beginning of the short path
+EPREFIX_NEW_SLASHES=${EPREFIX_NEW}
 for i in $(seq 1 ${length_diff}); do
-    EPREFIX_NEW="/${EPREFIX_NEW}"
+    EPREFIX_NEW_SLASHES="/${EPREFIX_NEW_SLASHES}"
 done
 
 ## Change to root directory of prefix being patched
@@ -83,7 +84,17 @@ pushd "${EROOT}"
 STEP="patching regular files"
 echo "Begin ${STEP}"
 
-find . -type f -exec sed -i -e "s^${EPREFIX_OLD}^${EPREFIX_NEW}^g" "{}" \; || die "Error ${STEP}"
+replace() {
+	if grep -Iq . "$1" ; then
+		sed -i -e "s^${EPREFIX_OLD}^${EPREFIX_NEW}^g" "$1"
+	else
+		sed -i -e "s^${EPREFIX_OLD}^${EPREFIX_NEW_SLASHES}^g" "$1"
+	fi
+}
+export -f replace
+export EPREFIX_OLD EPREFIX_NEW EPREFIX_NEW_SLASHES
+
+find . -type f -exec bash -c "replace "{}"" \; || die "Error ${STEP}"
 
 echo "Done ${STEP}"
 
