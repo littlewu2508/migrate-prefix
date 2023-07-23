@@ -66,7 +66,15 @@ parse_commandline()
 parse_commandline "$@"
 
 [[ -d "${EROOT}" ]] || die "${EROOT} does not exist or is not a directory!" 78
-[[ ${#EPREFIX_OLD} == ${#EPREFIX_NEW} ]] || die "\${EPREFIX_OLD} and \${EPREfIX_NEW} must have same length!" 78
+
+# Get the length difference between the two paths
+length_diff=$(( ${#EPREFIX_OLD} - ${#EPREFIX_NEW} ))
+[[ ${length_diff} -ge 0 ]] || die "\${EPREFIX_OLD} can't be shorter than \${EPREfIX_NEW}!" 78
+
+# Insert slashes at the beginning of the short path
+for i in $(seq 1 ${length_diff}); do
+    EPREFIX_NEW="/${EPREFIX_NEW}"
+done
 
 ## Change to root directory of prefix being patched
 pushd "${EROOT}"
